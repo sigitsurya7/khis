@@ -1,4 +1,4 @@
-interface Pasien {
+export interface intListPasienRajal {
     no_register: string;
     pelayanan_id: string;
     pelayanan_uid: string;
@@ -24,7 +24,7 @@ interface Pasien {
     is_checkin?: number; // opsional jika ada di data lain
 }
 
-export const dummyPasien: Pasien[] = [
+export const dummyPasien: intListPasienRajal[] = [
     {
         "no_register": "IRJ.250610.306",
         "pelayanan_id": "282904",

@@ -1,4 +1,4 @@
-import { dummyPasien } from "@/data/dummyListPasien";
+import { dummyPasien, intListPasienRajal } from "@/data/dummyListPasien";
 import { mLayanan } from "@/data/layanan";
 import { mDokter } from "@/data/mDokter";
 import { Autocomplete, AutocompleteItem, Button, Card, CardBody, CardFooter, Chip, Table, TableBody, TableCell, TableColumn, TableHeader, TableRow } from "@heroui/react";
@@ -6,10 +6,17 @@ import { useState } from "react";
 
 import { FaTimes } from "react-icons/fa";
 import { CiBullhorn } from "react-icons/ci";
+import { useRouter } from "next/navigation";
 
 export default function ListDokterRajal(){
     const [namaLayanan, setnamaLayanan] = useState("");
     const [namaDokter, setnamaDokter] = useState("");
+
+    const router = useRouter()
+
+    function panggilPasien(data: intListPasienRajal){
+        router.push(`/pelayanan_medis/rawat_jalan/pemeriksaan_dokter/form/${data.pelayanan_uid}`);
+    }
 
     return(
         <div className="flex flex-col gap-2 flex-wrap">
@@ -119,6 +126,7 @@ export default function ListDokterRajal(){
                                         <Button 
                                             color="primary"
                                             aria-label="panggil"
+                                            onPress={() => panggilPasien(value)}
                                             isIconOnly
                                         >
                                             <CiBullhorn />
