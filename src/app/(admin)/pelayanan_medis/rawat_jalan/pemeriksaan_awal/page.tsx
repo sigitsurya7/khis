@@ -1,4 +1,5 @@
 import { Metadata } from "next";
+import TabsPerawatRajal from "./component/tabs";
 
 export const metadata: Metadata = {
   title:
@@ -9,7 +10,7 @@ export const metadata: Metadata = {
 export default function PemeriksaanAwal(){
     return (
         <>
-            Pemeriksaan Awal
+            <TabsPerawatRajal />
         </>
     )
 }

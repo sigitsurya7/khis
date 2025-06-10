@@ -3,7 +3,7 @@ import { mLayanan } from "@/data/layanan";
 import { RiResetLeftFill } from "react-icons/ri";
 import { Card, CardBody, Input, Select, SelectItem, Table, TableHeader, TableColumn, TableBody, CardFooter, DateRangePicker, Button } from "@heroui/react";
 
-export default function HistoryDokterRajal(){
+export default function HistoryPerawatRajal(){
     return(
         <div className="flex flex-col gap-2 flex-wrap">
             <Card>

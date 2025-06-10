@@ -9,8 +9,6 @@ interface TabsRawatJalanProps {
 
 export default function TabsRawatJalan({ dokter_id }: TabsRawatJalanProps){
 
-    console.log(localStorage.getItem('theme'))
-
     return (
         <div className="flex w-full flex-col">
             <Tabs aria-label="Options" color="primary" radius={"full"}>
