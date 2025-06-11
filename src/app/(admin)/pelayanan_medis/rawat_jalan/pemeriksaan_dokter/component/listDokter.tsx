@@ -15,7 +15,7 @@ export default function ListDokterRajal(){
     const router = useRouter()
 
     function panggilPasien(data: intListPasienRajal){
-        router.push(`/pelayanan_medis/rawat_jalan/pemeriksaan_dokter/form/${data.pelayanan_uid}`);
+        router.push(`/pelayanan_medis/rawat_jalan/pemeriksaan/form/${data.pelayanan_uid}`);
     }
 
     return(
@@ -60,7 +60,7 @@ export default function ListDokterRajal(){
                 </CardBody>
             </Card>
 
-            <Table isVirtualized isHeaderSticky={true} maxTableHeight={600} >
+            <Table isVirtualized isHeaderSticky={true} maxTableHeight={600} aria-label="list dokter rajal">
                 <TableHeader>
                     <TableColumn align="center">&nbsp;</TableColumn>
                     <TableColumn>Pasien</TableColumn>
