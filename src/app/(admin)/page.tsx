@@ -1,3 +1,4 @@
+import { useAuthStore } from "@/store/authStore";
 import type { Metadata } from "next";
 import React from "react";
 
@@ -8,9 +9,11 @@ export const metadata: Metadata = {
 };
 export default function Ecommerce() {
 
+  const { user } = useAuthStore.getState()
+
   return (
     <div className="grid grid-cols-1 gap-4">
-      <span>Greeting, halo ( nama user )</span>
+      <span>Greeting, halo {user?.first_name}</span>
 
       <span>Ada Notifikasi semisal dia punya konsul dan harus jawab konsul jadi jawab konsul bisa dari dashboard aja</span>
     </div>

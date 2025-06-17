@@ -13,7 +13,7 @@ export default function TabsPenagihanAsuransi(){
                 <Tab key="dRajal" title="Daftar Piutang Rajal">
                     <DaftarPenARajal />
                 </Tab>
-                <Tab key="dRanap" title="Daftar Piutang Rajal">
+                <Tab key="dRanap" title="Daftar Piutang Ranap">
                     <DaftarPenARanap />
                 </Tab>
                 <Tab key="dTagihan" title="Daftar Tagihan">

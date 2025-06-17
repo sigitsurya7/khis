@@ -4,12 +4,92 @@ import Input from "@/components/form/input/InputField";
 import Label from "@/components/form/Label";
 import Button from "@/components/ui/button/Button";
 import { ChevronLeftIcon, EyeCloseIcon, EyeIcon } from "@/icons";
+import { login } from "@/services/auth";
+import axios from "axios";
 import Link from "next/link";
+import { useRouter, useSearchParams } from "next/navigation";
 import React, { useState } from "react";
+import toast from "react-hot-toast";
+
+type loginForm = {
+  username: string;
+  password: string;
+};
 
 export default function SignInForm() {
+  
+  const router = useRouter()
+  const searchParams = useSearchParams();
+  const callbackUrl = searchParams.get("callbackUrl") || "/";
+
   const [showPassword, setShowPassword] = useState(false);
-  const [isChecked, setIsChecked] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+  const [errors, setErrors] = useState({
+    username: "",
+    password: "",
+  });
+  const [formData, setFormData] = useState<loginForm>({
+    username: "",
+    password: ""
+  })
+  const [isShaking, setIsShaking] = useState(false);
+
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = e.target;
+    setFormData(prev => ({
+      ...prev,
+      [name]: value,
+    }));
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+
+    const { username, password } = formData
+
+    const newErrors = {
+      username: "",
+      password: "",
+    };
+  
+    let hasError = false
+  
+    if (!username.trim()) {
+      newErrors.username = "Form username tidak boleh kosong";
+      hasError = true
+    }
+    if (!password.trim()) {
+      newErrors.password = "Form password tidak boleh kosong";
+      hasError = true
+    }
+
+    setErrors(newErrors);
+
+    if (hasError) {
+      setIsShaking(true);
+      setTimeout(() => setIsShaking(false), 500)
+      return;
+    }
+
+    setIsLoading(true);
+    try {
+      await login(formData);
+      toast.success("Login berhasil!");
+      router.push(callbackUrl);
+    } catch (error: any) {
+      console.error("Login error:", error);
+      
+      // Handle error response dari API
+      const errorMessage = error.response?.data?.message || 
+                          error.response?.data?.error || 
+                          "Login gagal. Silakan coba lagi.";
+      
+      toast.error(errorMessage);
+    } finally {
+      setIsLoading(false);
+    }
+  }
+
   return (
     <div className="flex flex-col flex-1 lg:w-1/2 w-full">
       <div className="flex flex-col justify-center flex-1 w-full max-w-md mx-auto">
@@ -19,17 +99,25 @@ export default function SignInForm() {
               Sign In
             </h1>
             <p className="text-sm text-gray-500 dark:text-gray-400">
-              Enter your email and password to sign in!
+              Masukan username dan password anda!
             </p>
           </div>
           <div>
-            <form>
+            <form onSubmit={handleSubmit} className={isShaking ? "shake" : ""}>
               <div className="space-y-6">
                 <div>
                   <Label>
-                    Email <span className="text-error-500">*</span>{" "}
+                    Username <span className="text-error-500">*</span>{" "}
                   </Label>
-                  <Input placeholder="info@gmail.com" type="email" />
+                  <Input
+                    placeholder="Masukan username anda"
+                    type="text"
+                    name="username"
+                    onChange={handleChange}
+                    defaultValue={formData.username}
+                    error={errors.username ? true : false}
+                    hint={errors.username}
+                  />
                 </div>
                 <div>
                   <Label>
@@ -38,7 +126,12 @@ export default function SignInForm() {
                   <div className="relative">
                     <Input
                       type={showPassword ? "text" : "password"}
-                      placeholder="Enter your password"
+                      placeholder="Masukan password anda"
+                      name="password"
+                      defaultValue={formData.password}
+                      onChange={handleChange}
+                      error={errors.password ? true : false}
+                      hint={errors.password}
                     />
                     <span
                       onClick={() => setShowPassword(!showPassword)}
@@ -52,23 +145,10 @@ export default function SignInForm() {
                     </span>
                   </div>
                 </div>
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-3">
-                    <Checkbox checked={isChecked} onChange={setIsChecked} />
-                    <span className="block font-normal text-gray-700 text-theme-sm dark:text-gray-400">
-                      Keep me logged in
-                    </span>
-                  </div>
-                  <Link
-                    href="/reset-password"
-                    className="text-sm text-brand-500 hover:text-brand-600 dark:text-brand-400"
-                  >
-                    Forgot password?
-                  </Link>
-                </div>
+                
                 <div>
-                  <Button className="w-full" size="sm">
-                    Sign in
+                  <Button className="w-full" size="sm" disabled={isLoading}>
+                    { isLoading ? "Signing in..." : "Sign in" }
                   </Button>
                 </div>
               </div>
