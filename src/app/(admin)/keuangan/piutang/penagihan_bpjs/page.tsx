@@ -1,4 +1,5 @@
 import { Metadata } from "next";
+import DTagihan from "./component/dTagihan";
 
 export const metadata: Metadata = {
   title:
@@ -7,9 +8,10 @@ export const metadata: Metadata = {
 };
 
 export default function PenagihanBpjs(){
+    
     return (
         <>
-            Penagihan Bpjs
+            <DTagihan />
         </>
     )
 }

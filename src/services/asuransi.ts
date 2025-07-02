@@ -4,8 +4,23 @@ interface LoadPiutangParams {
   cara_bayar_id: string;
   bulan: string;
   tahun: string;
+  search?: string;
   page?: number;
   limit?: number;
+}
+
+interface DaftarTagihanParams {
+    cara_bayar_id?: string;
+    perusahaan_id?: string;
+    jenis_layanan?: string;
+    filterName?: string;
+    page?: number;
+    limit?: number;
+}
+interface FollowUp {
+    id?: string;
+    page?: number;
+    limit?: number;
 }
 
 export interface PiutangResponse {
@@ -14,6 +29,21 @@ export interface PiutangResponse {
   limit: number;
   page: number;
   total: number;
+}
+export interface FollowUpResponse {
+  action: string;
+  data: FollowUpItem[] | null;
+  limit: number;
+  page: number;
+  total: number;
+}
+export interface FollowUpItem {
+    id?: number
+    tagihan_piutang_id?: number
+    tanggal: string
+    follow_up_by: string
+    hasil_follow_up: string
+    pic_perusahaan: string
 }
 
 export interface LoadDetailPiutangParams {
@@ -72,16 +102,25 @@ export interface DetailPiutang {
   tanggal_sampai?: string;
 }
 
+export interface DaftarTagihanResponse {
+    action: string;
+    data: any[] | null;
+    limit: number;
+    page: number;
+    total: number;
+}
+
 export const loadPiutangRajal = async ({
   cara_bayar_id,
   bulan,
   tahun,
+  search = "",
   page = 1,
   limit = 10
 }: LoadPiutangParams): Promise<PiutangResponse> => {
   try {
     const response = await api.get(
-      `/asuransi/piutang_rajal?cara_bayar_id=${cara_bayar_id}&bulan=${bulan}&tahun=${tahun}&page=${page}&limit=${limit}`
+      `/asuransi/piutang_rajal?search=${search}&cara_bayar_id=${cara_bayar_id}&bulan=${bulan}&tahun=${tahun}&page=${page}&limit=${limit}`
     );
     return response.data;
   } catch (error) {
@@ -94,12 +133,13 @@ export const loadPiutangRanap = async ({
   cara_bayar_id,
   bulan,
   tahun,
+  search = "",
   page = 1,
   limit = 10
 }: LoadPiutangParams): Promise<PiutangResponse> => {
   try {
     const response = await api.get(
-      `/asuransi/piutang_ranap?cara_bayar_id=${cara_bayar_id}&bulan=${bulan}&tahun=${tahun}&page=${page}&limit=${limit}`
+      `/asuransi/piutang_ranap?search=${search}&cara_bayar_id=${cara_bayar_id}&bulan=${bulan}&tahun=${tahun}&page=${page}&limit=${limit}`
     );
     return response.data;
   } catch (error) {
@@ -133,3 +173,46 @@ export const loadDetailPenagihan = async ({
     throw error;
   }
 };
+
+export const loadDaftarTagihan = async ({
+    cara_bayar_id = "0",
+    perusahaan_id = "0",
+    jenis_layanan = "0",
+    filterName = "",
+    page = 1,
+    limit = 10
+}: DaftarTagihanParams): Promise<DaftarTagihanResponse> => {
+    try {
+        const response = await api.get(
+        `/asuransi/daftar_tagihan?search=${filterName}&cara_bayar_id=${cara_bayar_id}&perusahaan_id=${perusahaan_id}&jenis_layanan=${jenis_layanan}&page=${page}&limit=${limit}`
+        );
+        return response.data;
+    } catch (error) {
+        console.error('Error loading piutang rajal:', error);
+        throw error;
+    }
+}
+
+export const saveDetailTagihan = async ( data : any) => {
+    try {
+        const response = await api.post('/asuransi/detail_penagihan/save', data);
+        return response.data;
+    } catch (error) {
+        console.error('Error save detail tagihan:', error);
+        throw error;
+    }
+}
+
+export const getFollowUp = async ({
+    id,
+    page = 1,
+    limit = 10
+}: FollowUp) => {
+    try {
+        const response = await api.get(`asuransi/follow_up?id=${id}&page=${page}&limit=${limit}`)
+        return response.data
+    } catch (error) {
+        console.error('Error saat mengambil data:', error);
+        throw error;
+    }
+}

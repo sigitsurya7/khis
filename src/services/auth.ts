@@ -19,6 +19,7 @@ export const logout = async () => {
     await api.post('/auth/logout');
   } finally {
     useAuthStore.getState().clearAuthData();
+    document.cookie = "auth-token=; max-age=0; path=/;";
   }
 };
 

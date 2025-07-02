@@ -2,12 +2,15 @@
 import { ThemeToggleButton } from "@/components/common/ThemeToggleButton";
 import UserDropdown from "@/components/header/UserDropdown";
 import { useSidebar } from "@/context/SidebarContext";
+import { useAuthStore } from "@/store/authStore";
 import Image from "next/image";
 import Link from "next/link";
 import React, { useState } from "react";
 
 const AppHeader: React.FC = () => {
   const [isApplicationMenuOpen, setApplicationMenuOpen] = useState(false);
+
+  const { user } = useAuthStore.getState()
 
   const { isMobileOpen, toggleSidebar, toggleMobileSidebar } = useSidebar();
 
@@ -114,7 +117,7 @@ const AppHeader: React.FC = () => {
 
           </div>
           {/* <!-- User Area --> */}
-          <UserDropdown /> 
+          <UserDropdown user={user} /> 
     
         </div>
       </div>

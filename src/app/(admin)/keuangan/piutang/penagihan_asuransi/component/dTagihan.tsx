@@ -1,138 +1,210 @@
-import { Perusahaan } from "@/data/perusahaan";
-import { Card, CardBody, Table, TableBody, TableCell, TableColumn, TableHeader, TableRow, Select, SelectItem, Autocomplete, AutocompleteItem, Pagination, Button, Tooltip, ScrollShadow, CardFooter } from "@heroui/react";
-import { HiOutlinePrinter, HiOutlineSpeakerWave, HiOutlinePencilSquare } from "react-icons/hi2";
+import { Card, CardBody, Table, TableBody, TableCell, TableColumn, TableHeader, TableRow, Select, SelectItem, Autocomplete, AutocompleteItem, Pagination, Button, Tooltip, ScrollShadow, CardFooter, Chip, Input, Dropdown, DropdownTrigger, DropdownMenu, DropdownSection, DropdownItem } from "@heroui/react";
 import { RiFileExcel2Line } from "react-icons/ri";
-import React, { useEffect, useMemo, useState } from "react";
+import React, { ReactNode, useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { getPerusahaan, MasterPerusahaanResponse } from "@/services/masterPerusahaan";
+import { DaftarTagihanResponse, loadDaftarTagihan } from "@/services/asuransi";
+import { formatCurrency } from "@/config/formatCurrency";
+import { AddTanggalKirim, hitungAgingPiutang, RenderAction, RenderAfterDiskon, RenderAgingPiutang, RenderDiskon, RenderLayanan, RenderNomorTagihan, RenderTagihan } from "./tagihanComp";
+import moment from 'moment';
+import { GoDash, GoSearch } from "react-icons/go";
+import { KTableColumn } from "@/types/kTables";
+import KTable from "@/components/ktable/MainTable";
+import api from "@/lib/api";
+
+interface DaftarTagihan {
+    perusahaan: string;
+    sisa_tagihan: string;
+    tgl_jatuh_tempo: string;
+    follow_up_username: string;
+    koreksi_username: string;
+    tgl_kirim: string;
+    no_tagihan: string;
+    jenis_layanan: string;
+    jumlah_koreksi: string;
+    total_tagihan: string;
+    tanggal: string;
+    discount: string;
+    action: string;
+}
 
 export default function DaftarPenATagihan(){
-    const [page, setPage] = useState(1);
-    const rowsPerPage = 4;
-    const [jenisJaminan, setJenisJaminan] = useState("asuransi");
-    const [jenisLayanan, setJenisLayanan] = useState("");
-    const [namaPenjamin, setNamaPenjamin] = useState("");
+    const tableRef = useRef<any>(null);
+    
+    const [jenisJaminan, setJenisJaminan] = useState<string>("4");
+    const [jenisLayanan, setJenisLayanan] = useState<string>("");
+    const [namaPenjamin, setNamaPenjamin] = useState<string>("");
+    const [perusahaan, setPerusahaan] = useState<MasterPerusahaanResponse | null >(null);
 
-    const pages = Math.ceil(Perusahaan.length / rowsPerPage);
-
-    const items = useMemo(() => {
-        const start = (page - 1) * rowsPerPage;
-        const end = start + rowsPerPage;
-
-        return Perusahaan.slice(start, end);
-    }, [page, Perusahaan]);
+    const getMasterPerusahaan = async () => {
+        try {
+            const result = await getPerusahaan()
+            setPerusahaan(result)
+        } catch (error) {
+            console.error(error)
+        }
+    }
 
     useEffect(() => {
-        console.log(jenisJaminan, jenisLayanan, namaPenjamin)
-    }, [jenisJaminan, jenisLayanan, namaPenjamin])
+        getMasterPerusahaan()
+    }, [])
+
+    const columns: KTableColumn<DaftarTagihan>[] = [
+        {
+            id: "1",
+            title: "Nomor Tagihan",
+            field: "no_tagihan",
+            render: (item) => <RenderNomorTagihan row={item} />,
+        },
+        {
+            id: "2",
+            title: "Perusahaan",
+            field: "perusahaan",
+            render: (item) => (
+                item.perusahaan
+            ),
+        },
+        {
+            id: "3",
+            title: "Jenis Layanan",
+            field: "jenis_layanan",
+            render: (item) => <RenderLayanan row={item} />,
+        },
+        {
+            id: "4",
+            title: "Total Tagihan",
+            field: "total_tagihan",
+            render: (item) => <RenderTagihan row={item} />,
+        },
+        {
+            id: "5",
+            title: "Diskon",
+            field: "discount",
+            render: (item) => <RenderDiskon row={item} />,
+        },
+        {
+            id: "6",
+            title: "Total Setelah Di Diskon",
+            field: "jumlah_koreksi",
+            render: (item) => <RenderAfterDiskon row={item} />,
+        },
+        {
+            id: "7",
+            title: "Sisa Tagihan",
+            field: "sisa_tagihan",
+            render: (item) => (
+                formatCurrency(item.sisa_tagihan)
+            ),
+        },
+        {
+            id: "8",
+            title: "Tgl. Diterima",
+            field: "tanggal",
+            render: (item) => <AddTanggalKirim data={item} />,
+        },
+        {
+            id: "9",
+            title: "Tgl. Jatuh Tempo",
+            field: "tgl_jatuh_tempo",
+            render: (item) => <RenderAgingPiutang item={item} isSisa />
+        },
+        {
+            id: "10",
+            title: "Umur",
+            field: "tgl_jatuh_tempo",
+            render: (item) => <RenderAgingPiutang item={item} />
+        },
+        {
+            id: "11",
+            title: "Follow Up By",
+            field: "follow_up_username",
+            render: (item) => (
+                item.follow_up_username
+            )
+        },
+        {
+            id: "12",
+            title: "Koreksi By",
+            field: "koreksi_username",
+            render: (item) => (
+                item.koreksi_username
+            )
+        },
+        {
+            id: "13",
+            title: "Action",
+            field: "action",
+            render: (item) => <RenderAction row={item} />
+        },
+    ]
 
     return(
-       <div className="flex flex-col gap-4">
-            <Card>
-                <CardBody>
-                    <div className="flex flex-col flex-wrap gap-4">
-                        <div className="flex justify-between items-center flex-wrap">
-                            <h1 className="font-semibold ml-2">Daftar Tagihan</h1>
-                            <Button color="success" startContent={<RiFileExcel2Line />}>Export Excel</Button>
+        <React.Fragment>
+            <div className="flex flex-col gap-4 flex-wrap">
+                <Card>
+                    <CardBody>
+                        <div className="flex flex-col flex-wrap gap-4">
+                            <div className="flex justify-between items-center flex-wrap">
+                                <h1 className="font-semibold ml-2">Daftar Tagihan</h1>
+                                <Button color="success" startContent={<RiFileExcel2Line />}>Export Excel</Button>
+                            </div>
+                            <div className="grid grid-cols-2 md:grid-cols-3 items-center gap-4">
+                                <Select
+                                    label="Jenis Jaminan"
+                                    defaultSelectedKeys={[jenisJaminan]}
+                                    onSelectionChange={(keys) => setJenisJaminan(Array.from(keys)[0]?.toString() || "")}
+                                >
+                                    <SelectItem key="0">-- Pilih Jaminan --</SelectItem>
+                                    <SelectItem key={"4"}>Asuransi</SelectItem>
+                                    <SelectItem key={"5"}>Perusahaan</SelectItem>
+                                </Select>
+
+                                <Select
+                                    label="Jenis Layanan" placeholder="Pilih Layanan"
+                                    selectedKeys={jenisLayanan ? [jenisLayanan] : []}
+                                    onSelectionChange={(keys) => setJenisLayanan(Array.from(keys)[0]?.toString() || "")}
+                                >
+                                    <SelectItem key="0">-- Pilh Layanan --</SelectItem>
+                                    <SelectItem key="1">Rawat Jalan</SelectItem>
+                                    <SelectItem key="2">Rawat Inap</SelectItem>
+                                </Select>
+
+                                <Autocomplete
+                                    className="col-span-2 md:col-span-1"
+                                    defaultItems={perusahaan?.data || []}
+                                    label="Nama Penjamin"
+                                    placeholder="Pilih Perusahaan"
+                                    selectedKey={namaPenjamin}
+                                    onSelectionChange={(key) => setNamaPenjamin(key?.toString() || "")}
+                                    multiple={true}
+                                >
+                                    {(item) => <AutocompleteItem key={item.id}>{item.nama}</AutocompleteItem>}
+                                </Autocomplete>
+                            </div>
                         </div>
-                        <div className="grid grid-cols-2 md:grid-cols-3 items-center gap-4">
-                            <Select
-                                label="Jenis Jaminan"
-                                defaultSelectedKeys={[jenisJaminan]}
-                                onSelectionChange={(keys) => setJenisJaminan(Array.from(keys)[0]?.toString() || "")}
-                            >
-                                <SelectItem key={"asuransi"}>Asuransi</SelectItem>
-                                <SelectItem key={"perusahaan"}>Perusahaan</SelectItem>
-                            </Select>
+                    </CardBody>
+                </Card>
 
-                            <Select
-                                label="Jenis Layanan" placeholder="Pilih Layanan"
-                                selectedKeys={jenisLayanan ? [jenisLayanan] : []}
-                                onSelectionChange={(keys) => setJenisLayanan(Array.from(keys)[0]?.toString() || "")}
-                            >
-                                <SelectItem key="rawat_jalan">Rawat Jalan</SelectItem>
-                                <SelectItem key="rawat_inap">Rawat Inap</SelectItem>
-                            </Select>
+                <KTable<DaftarTagihan>
+                    ref={tableRef}
+                    ariaLabel="Daftar Penagihan Asuransi Table"
+                    header={columns}
+                    fetchData={async ({ page, limit, search, }) => {
+                        const res = await api.get("/asuransi/daftar_tagihan", {
+                            params: {
+                                page, limit, search,
+                                cara_bayar_id: jenisJaminan != "" ? jenisJaminan : "0",
+                                perusahaan_id: namaPenjamin != "" ? namaPenjamin : "0",
+                                jenis_layanan: jenisLayanan != "" ? jenisLayanan : "0",
+                            },
+                        });
+                        return {
+                            data: res.data.data,
+                            total: res.data.total,
+                        };
+                    }}
+                />
+            </div>
 
-                            <Autocomplete
-                                className="col-span-2 md:col-span-1"
-                                defaultItems={Perusahaan}
-                                label="Nama Penjamin"
-                                placeholder="Pilih Perusahaan"
-                                selectedKey={namaPenjamin}
-                                onSelectionChange={(key) => setNamaPenjamin(key?.toString() || "")}
-                            >
-                                {(item) => <AutocompleteItem key={item.id}>{item.nama}</AutocompleteItem>}
-                            </Autocomplete>
-                        </div>
-                    </div>
-                </CardBody>
-            </Card>
-
-            <Card>
-                <CardBody>
-                    <Table
-                        aria-label="Daftar Penagihan Asuransi Table"
-                        isCompact={true}
-                        isHeaderSticky
-                        shadow="none"
-                    >
-                        <TableHeader>
-                            <TableColumn>No. Tagihan</TableColumn>
-                            <TableColumn>Penjamin</TableColumn>
-                            <TableColumn>Jenis Layanan</TableColumn>
-                            <TableColumn>Total Tagihan</TableColumn>
-                            <TableColumn>Diskon</TableColumn>
-                            <TableColumn>Total Setelah Di Diskon</TableColumn>
-                            <TableColumn>Sisa Tagihan</TableColumn>
-                            <TableColumn>Tgl. Diterima</TableColumn>
-                            <TableColumn>Tgl. Jatuh Tempo</TableColumn>
-                            <TableColumn>Umur</TableColumn>
-                            <TableColumn>Follow Up By</TableColumn>
-                            <TableColumn>Koreksi By</TableColumn>
-                            <TableColumn>Action</TableColumn>
-                        </TableHeader>
-                        <TableBody>
-                            <TableRow key="1">
-                                <TableCell>Tony Reichert</TableCell>
-                                <TableCell>CEO</TableCell>
-                                <TableCell>Active</TableCell>
-                                <TableCell>Active</TableCell>
-                                <TableCell>Active</TableCell>
-                                <TableCell>Active</TableCell>
-                                <TableCell>Active</TableCell>
-                                <TableCell>Active</TableCell>
-                                <TableCell>Active</TableCell>
-                                <TableCell>Active</TableCell>
-                                <TableCell>Active</TableCell>
-                                <TableCell>Active</TableCell>
-                                <TableCell className="flex gap-2 flex-wrap">
-                                    <Tooltip className="capitalize" color={"primary"} content={"Follow Up"}>
-                                        <Button isIconOnly color="primary"><HiOutlineSpeakerWave /></Button>
-                                    </Tooltip>
-                                    <Tooltip className="capitalize" color={"secondary"} content={"Koreksi"}>
-                                        <Button isIconOnly color="secondary"><HiOutlinePencilSquare /></Button>
-                                    </Tooltip>
-                                    <Tooltip className="capitalize" color={"success"} content={"Print"}>
-                                        <Button isIconOnly color="success"><HiOutlinePrinter /></Button>
-                                    </Tooltip>
-                                </TableCell>
-                            </TableRow>
-                        </TableBody>
-                    </Table>
-                </CardBody>
-                <CardFooter>
-                    <div className="flex w-full justify-center">
-                        <Pagination
-                            isCompact
-                            showControls
-                            showShadow
-                            color="primary"
-                            page={page}
-                            total={pages}
-                            onChange={(page) => setPage(page)}
-                        />
-                    </div>
-                </CardFooter>
-            </Card>
-       </div>
+        </React.Fragment>
     )
 }
